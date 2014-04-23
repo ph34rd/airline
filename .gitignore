@@ -1,0 +1,13 @@
+[Tt]humbs.db
+*.DS_Store
+[Dd]esktop.ini
+~$*
+*~
+.svn
+*.sublime-project
+*.sublime-workspace
+tmp/
+logs/
+lib/config.js
+.grunt
+node_modules

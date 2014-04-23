@@ -1,0 +1,139 @@
+<% extend 'layout.ect' %>
+
+					<div class="inner">
+						<h1>Request route</h1>
+						<p class="lead">Fill out the form and press request.</p>
+
+						<form role="form" id="main-form">
+							<div class="form-group">
+									<label for="departure">Departure</label>
+									<input type="text" class="form-control" name="departure" id="departure" placeholder="Enter departure">
+							</div>
+							<div class="form-group">
+									<label for="arrival">Arrival</label>
+									<input type="text" class="form-control" name="arrival" id="arrival" placeholder="Enter arrival">
+							</div>
+							<div class="form-group">
+									<label for="date">Date</label>
+									<input type="text" class="form-control" name="date" id="date" placeholder="Select Date (yy-mm-dd)">
+							</div>
+							<button type="submit" class="btn btn-default">Request</button>
+						</form>
+
+						<div class="preloader">
+							<img src="/img/preloader.gif" />
+						</div>
+
+						<br/>
+						<p class="lead" id="result-table"></p>
+					</div>
+
+<script>
+$(function() {
+
+$('.preloader').hide();
+$(document).ajaxStart(function() {
+	$('.preloader').show();
+})
+$(document).ajaxStop(function() {
+	$('.preloader').hide();
+});
+
+$("#date").datepicker({ dateFormat: 'yy-mm-dd' });
+$("#date").datepicker("setDate", new Date());
+	
+$('#main-form').submit(function(ev) {
+	var p = $('#result-table');	
+	$.post('/byRoute', $(this).serialize(), function(data) {
+		if (data.status == 'success') {
+			if (data.data.length > 0) {				
+					table = $('<table class="table">' + 
+						'<thead><tr>' +
+							'<td>Flight</td>' + 
+							'<td>Airline</td>' + 
+							'<td>DShed</td>' + 
+							'<td>DActual</td>' + 
+							'<td>DGate</td>' + 
+							'<td>AShed</td>' + 
+							'<td>AActual</td>' + 
+							'<td>AGate</td>' + 
+							'<td>State</td>' +
+							'<td>Equip</td>' +
+						'</tr></thead><tbody>' + 
+						'</tbody></table>');
+
+				p.html(table);
+				var tbody = table.find('tbody');
+
+				$.each(data.data, function(key, val) {
+					tbody.append('<tr>' +
+							'<td>' + val.flight + '</td>' + 
+							'<td>' + val.airline + '</td>' + 
+							'<td>' + val.departureShed + '</td>' + 
+							'<td>' + val.departureActual + '</td>' + 
+							'<td>' + val.departureGate + '</td>' + 
+							'<td>' + val.arrivalShed + '</td>' + 
+							'<td>' + val.arrivalActual + '</td>' + 
+							'<td>' + val.arrivalGate + '</td>' + 
+							'<td>' + val.state + '</td>' +
+							'<td>' + val.equip + '</td>' +
+						'</tr>');
+				});
+			} else {
+				p.html('Flights not found.');
+			}
+		} else {
+			p.html('Request error.');
+		}
+	}, 'json').fail(function() {
+		p.html('Request error.');
+	});
+
+	ev.preventDefault();
+});
+
+function split(val) {
+	return val.split(/,\s*/);
+}
+
+function extractLast(term) {
+	return split(term).pop();
+}
+
+$('input[name=departure],input[name=arrival]').each(function() {
+	$(this).bind( "keydown", function(ev) {
+		if ((ev.keyCode === $.ui.keyCode.TAB) &&
+		($(this).data("ui-autocomplete").menu.active)) {
+			ev.preventDefault();
+		}
+	}).autocomplete({
+		source: function(req, res) {
+			$.getJSON( "/airportSuggest/" + extractLast(req.term), function(data) {
+				if (data.status == 'success') {
+					res(data.data);
+				}
+			});
+		},
+		search: function() {
+			var term = extractLast(this.value);
+			if (term.length < 1) {
+				return false;
+			}
+		},
+		focus: function() {
+			return false;
+		},
+		select: function(ev, ui) {
+			var terms = split(this.value);
+			terms.pop();
+			terms.push(ui.item.value);
+			terms.push("");
+			this.value = terms.join(", ");
+			return false;
+		}
+	});
+});
+
+});
+</script>
+

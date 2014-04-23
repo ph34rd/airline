@@ -1,0 +1,18 @@
+'use strict';
+
+var config = {};
+
+config.procLimit = 0;
+config.swUser = 'www';
+config.swGroup = 'www';
+config.httpPort = 5000;
+config.trustProxy = false;
+config.keepAlive = 30000;
+
+config.flightstats = {
+	host: 'www.flightstats.com',
+	timeout: 10000,
+	agent: 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0'
+};
+
+module.exports = config;
